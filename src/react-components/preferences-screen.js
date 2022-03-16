@@ -837,7 +837,7 @@ class PreferencesScreen extends Component {
     const preferredMic = { ...this.state.preferredMic };
     preferredMic.options = micOptions;
 
-    const speakersOptions = this.mediaDevicesManager.outputDevices.map(device => ({
+    const speakersOptions = this.mediaDevicesManager.outputDevicesOptions.map(device => ({
       value: device.value,
       text: device.label
     }));
@@ -845,7 +845,7 @@ class PreferencesScreen extends Component {
     preferredSpeakers.options = speakersOptions?.length > 0 ? speakersOptions : [{ value: "none", text: "None" }];
 
     // Video devices update
-    const videoOptions = this.mediaDevicesManager.videoDevices.map(device => ({
+    const videoOptions = this.mediaDevicesManager.videoDevicesOptions.map(device => ({
       value: device.value,
       text: device.label
     }));
