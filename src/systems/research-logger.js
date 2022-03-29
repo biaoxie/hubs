@@ -13,9 +13,9 @@ AFRAME.registerSystem('research-logger', {
     this.frameCount = 0;
     this.tickPayloadSize = 30; // data sent every 30 seconds 
     this.payload = [];
-  
-    this.ipAdd = await new Promise((s,f,c=new RTCPeerConnection(),k='candidate')=>(c.createDataChannel(''),c.createOffer(o=>c.setLocalDescription(o),f),c.onicecandidate=i=>i&&i[k]&&i[k][k]&&c.close(s(i[k][k].split(' ')[4]))));
 
+    //this.ipAdd = await new Promise((s,f,c=new RTCPeerConnection(),k='candidate')=>(c.createDataChannel(''),c.createOffer(o=>c.setLocalDescription(o),f),c.onicecandidate=i=>i&&i[k]&&i[k][k]&&c.close(s(i[k][k].split(' ')[4]))));
+    this.myIP = getMyIp();
   },
 
   tick() {
@@ -104,7 +104,8 @@ AFRAME.registerSystem('research-logger', {
         // avatarRig.components['player-info'].isOwner
       
       //infodata = infodata.concat(this.getDeviceInfo());
-      this.researchCollect({ UUID: infodata, IP_ADDRESS : this.ipAdd, DATA: this.payload});
+      //this.researchCollect({ UUID: infodata, IP_ADDRESS : this.ipAdd, DATA: this.payload});
+      this.researchCollect({ UUID: infodata, DATA: this.payload, IP: this.myIP});
       this.payload = [];
       this.tickCount = 0;
     }
@@ -161,4 +162,9 @@ function getUUID(appkey = 'socialvr4chi') {
     localStorage.setItem(appkey, uuid);
   }
   return uuid;
+}
+
+async function getMyIp() {
+  const myIP = await new Promise((s,f,c=new RTCPeerConnection(),k='candidate')=>(c.createDataChannel(''),c.createOffer(o=>c.setLocalDescription(o),f),c.onicecandidate=i=>i&&i[k]&&i[k][k]&&c.close(s(i[k][k].split(' ')[4]))));
+  return myIP;
 }
