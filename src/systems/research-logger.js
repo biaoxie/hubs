@@ -13,9 +13,21 @@ AFRAME.registerSystem('research-logger', {
     this.frameCount = 0;
     this.tickPayloadSize = 30; // data sent every 30 seconds 
     this.payload = [];
-
+    
     //this.ipAdd = await new Promise((s,f,c=new RTCPeerConnection(),k='candidate')=>(c.createDataChannel(''),c.createOffer(o=>c.setLocalDescription(o),f),c.onicecandidate=i=>i&&i[k]&&i[k][k]&&c.close(s(i[k][k].split(' ')[4]))));
     this.myIP = getMyIp();
+    this.ipAddress = '';
+    this.ipv4 = {};
+    
+    axios.get('https://api.db-ip.com/v2/free/self')
+    .then(function(res) {
+      console.log(res);
+      this.ipv4 = res.data;
+    });
+
+    this.myIP.then((ipAdd) => {
+      this.ipAddress = ipAdd;
+    });
   },
 
   tick() {
@@ -36,7 +48,8 @@ AFRAME.registerSystem('research-logger', {
       
 
       this.payload.push({
-        timestamp : (now/1000).toFixed(2),
+        timestamp : Date.now(),
+        duration : (now/1000).toFixed(2),
         rigPositionX : this.flattenZeros(rigPosition.x),
         rigPositionY : this.flattenZeros(rigPosition.y),
         rigPositionZ : this.flattenZeros(rigPosition.z),
@@ -105,7 +118,15 @@ AFRAME.registerSystem('research-logger', {
       
       //infodata = infodata.concat(this.getDeviceInfo());
       //this.researchCollect({ UUID: infodata, IP_ADDRESS : this.ipAdd, DATA: this.payload});
-      this.researchCollect({ UUID: infodata, DATA: this.payload, IP: this.myIP});
+
+      // if (this.ipAddress == '') 
+      // {
+      //   this.myIP.then(function(result) {
+      //     this.ipAddress = result; 
+      //   });
+      // }
+      
+      this.researchCollect({ UUID: infodata, DATA: this.payload, IP: this.ipAddress, IPV4 : this.ipv4});
       this.payload = [];
       this.tickCount = 0;
     }
@@ -133,7 +154,7 @@ AFRAME.registerSystem('research-logger', {
   //   return deviceInfo;
   // },
 
-  researchCollect(data, url = "[URL]") {
+  researchCollect(data, url = "https://us-central1-cs695hubs-e838e.cloudfunctions.net/log") {
     if (data === undefined) return;
     
     axios.post(url, data)
@@ -141,7 +162,7 @@ AFRAME.registerSystem('research-logger', {
         console.log("recorded" + res.body);
       })
       .catch((err) => {
-        console.log("Logger Error:", err);
+        console.log("Logger Error:", err.body);
       });
 
     // const Http = new XMLHttpRequest();
@@ -165,6 +186,6 @@ function getUUID(appkey = 'socialvr4chi') {
 }
 
 async function getMyIp() {
-  const myIP = await new Promise((s,f,c=new RTCPeerConnection(),k='candidate')=>(c.createDataChannel(''),c.createOffer(o=>c.setLocalDescription(o),f),c.onicecandidate=i=>i&&i[k]&&i[k][k]&&c.close(s(i[k][k].split(' ')[4]))));
+  const myIP = await new Promise((s,f,c=new RTCPeerConnection(),k='candidate')=>(c.createDataChannel(''),c.createOffer(o=>c.setLocalDescription(o),f),c.onicecandidate=i=>i&&i[k]&&i[k][k]&&c.close(s(i[k][k].split(' ')[4]))));  
   return myIP;
 }
