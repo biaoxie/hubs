@@ -17,13 +17,14 @@ AFRAME.registerSystem('research-logger', {
     //this.ipAdd = await new Promise((s,f,c=new RTCPeerConnection(),k='candidate')=>(c.createDataChannel(''),c.createOffer(o=>c.setLocalDescription(o),f),c.onicecandidate=i=>i&&i[k]&&i[k][k]&&c.close(s(i[k][k].split(' ')[4]))));
     this.myIP = getMyIp();
     this.ipAddress = '';
-    this.ipv4 = {};
-    
-    axios.get('https://api.db-ip.com/v2/free/self')
-    .then(function(res) {
-      console.log(res);
-      this.ipv4 = res.data;
-    });
+    // this.ipv4 = {};
+    // this.ipv4_2 = '';
+    // axios.get('https://api.db-ip.com/v2/free/self')
+    // .then(function(res) {
+    //   console.log(res);
+    //   this.ipv4 = res;
+    //   this.ipv4_2 = res.ipAddress;
+    // });
 
     this.myIP.then((ipAdd) => {
       this.ipAddress = ipAdd;
@@ -43,19 +44,45 @@ AFRAME.registerSystem('research-logger', {
       this.lastFpsUpdate = now;
       this.frameCount = 0;
       
+      const avatarPOV = document.getElementById('avatar-pov-node');
       const avatarRig = document.getElementById('avatar-rig');
       const rigPosition = avatarRig.object3D.getWorldPosition(new THREE.Vector3());
+      const rigQuant = avatarRig.object3D.getWorldQuaternion(new THREE.Quaternion());
+      const rigDirection = avatarRig.object3D.getWorldDirection(new THREE.Vector3());
+      const povPosition = avatarPOV.object3D.getWorldPosition(new THREE.Vector3());
+      const povQuant = avatarPOV.object3D.getWorldQuaternion(new THREE.Quaternion());
+      const povDirection = avatarPOV.object3D.getWorldDirection(new THREE.Vector3());
       
 
       this.payload.push({
         timestamp : Date.now(),
         duration : (now/1000).toFixed(2),
+        fps : this.lastFPS,
+        isEntered : AFRAME.scenes[0].states.includes('entered') ? 1 : 0,
+        isMuted : AFRAME.scenes[0].states.includes('muted') ? 1 : 0,
+
         rigPositionX : this.flattenZeros(rigPosition.x),
         rigPositionY : this.flattenZeros(rigPosition.y),
         rigPositionZ : this.flattenZeros(rigPosition.z),
-        fps : this.lastFPS,
-        isEntered : AFRAME.scenes[0].states.includes('entered') ? 1 : 0,
-        isMuted : AFRAME.scenes[0].states.includes('muted') ? 1 : 0
+
+        povPositionX : this.flattenZeros(povPosition.x),
+        povPositionY : this.flattenZeros(povPosition.y),
+        povPositionZ : this.flattenZeros(povPosition.z),
+        
+        rigQuantX : this.flattenZeros(rigQuant._x),
+        rigQuantY : this.flattenZeros(rigQuant._y),
+        rigQuantZ : this.flattenZeros(rigQuant._z),
+        povQuantX : this.flattenZeros(povQuant._x),
+        povQuantY : this.flattenZeros(povQuant._y),
+        povQuantZ : this.flattenZeros(povQuant._z),
+
+        rigDirectionX : this.flattenZeros(rigDirection.x),
+        rigDirectionY : this.flattenZeros(rigDirection.y),
+        rigDirectionZ : this.flattenZeros(rigDirection.z),
+
+        povDirectionX : this.flattenZeros(povDirection.x),
+        povDirectionY : this.flattenZeros(povDirection.y),
+        povDirectionZ : this.flattenZeros(povDirection.z)
       });
 
       this.tickCount++;
@@ -126,7 +153,9 @@ AFRAME.registerSystem('research-logger', {
       //   });
       // }
       
-      this.researchCollect({ UUID: infodata, DATA: this.payload, IP: this.ipAddress, IPV4 : this.ipv4});
+      this.researchCollect({ UUID: infodata, 
+                              DATA: this.payload, 
+                              IP: this.ipAddress});
       this.payload = [];
       this.tickCount = 0;
     }
@@ -154,7 +183,7 @@ AFRAME.registerSystem('research-logger', {
   //   return deviceInfo;
   // },
 
-  researchCollect(data, url = "https://us-central1-cs695hubs-e838e.cloudfunctions.net/log") {
+  researchCollect(data, url = "URL") {
     if (data === undefined) return;
     
     axios.post(url, data)
